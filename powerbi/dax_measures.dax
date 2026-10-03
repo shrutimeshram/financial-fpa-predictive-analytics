@@ -1,0 +1,120 @@
+// Financial Performance FP&A - Power BI DAX
+// Source: project documentation
+
+// ============================================================
+// Actual Revenue
+// ============================================================
+Actual Revenue =
+SUM('FP&A'[Actual_Revenue])
+
+// ============================================================
+// Budget Revenue
+// ============================================================
+Budget Revenue =
+SUM('FP&A'[Budget_Revenue])
+
+// ============================================================
+// Revenue Variance
+// ============================================================
+Revenue Variance =
+[Actual Revenue] - [Budget Revenue]
+
+// ============================================================
+// Revenue Variance %
+// ============================================================
+Revenue Variance % =
+DIVIDE(
+    [Actual Revenue] - [Budget Revenue],
+    [Budget Revenue],
+    0
+)
+
+// ============================================================
+// Gross Profit
+// ============================================================
+Gross Profit =
+[Actual Revenue] + [Actual COGS]
+
+// ============================================================
+// Operating Profit
+// ============================================================
+Operating Profit =
+[Gross Profit]
++ [Actual Personnel]
++ [Actual OPEX]
++ [Actual Depreciation]
+
+// ============================================================
+// Gross Margin %
+// ============================================================
+Gross Margin % =
+DIVIDE([Gross Profit], [Actual Revenue], 0)
+
+// ============================================================
+// Operating Margin %
+// ============================================================
+Operating Margin % =
+DIVIDE([Operating Profit], [Actual Revenue], 0)
+
+// ============================================================
+// Anomaly Count
+// ============================================================
+Anomaly Count =
+COUNTROWS('anomaly_investigation')
+
+// ============================================================
+// Top Anomaly Amount
+// ============================================================
+Top Anomaly Amount =
+MAX('anomaly_investigation'[local_currency_amount])
+
+// ============================================================
+// Anomaly Rate
+// ============================================================
+Anomaly Rate =
+DIVIDE(
+    COUNTROWS('anomaly_investigation'),
+    159934
+)
+
+// ============================================================
+// ML MAPE
+// ============================================================
+ML MAPE =
+AVERAGEX(
+    'forecast_results',
+    DIVIDE(
+        ABS(
+            'forecast_results'[Actual_Revenue]
+            - 'forecast_results'[Predicted_Revenue]
+        ),
+        'forecast_results'[Actual_Revenue]
+    )
+)
+
+// ============================================================
+// 2025 Rolling Forecast MAPE
+// ============================================================
+2025 Rolling Forecast MAPE =
+CALCULATE(
+    AVERAGEX(
+        'FP&A',
+        DIVIDE(
+            ABS(
+                'FP&A'[Actual_Revenue]
+                - 'FP&A'[Forecast_Revenue]
+            ),
+            ABS('FP&A'[Actual_Revenue])
+        )
+    ) * 100,
+    'FP&A'[company_code] = 1000,
+    'FP&A'[fiscal_year] = 2025
+)
+
+// ============================================================
+// MAPE Difference
+// ============================================================
+MAPE Difference =
+ABS(
+    [ML MAPE] - DIVIDE([2025 Rolling Forecast MAPE], 100)
+)
